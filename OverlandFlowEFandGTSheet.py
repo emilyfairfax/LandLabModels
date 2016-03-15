@@ -5,14 +5,14 @@ Created on Mon Mar 14 13:48:09 2016
 with help from the LandLab tutorial for overland flow
 and Greg Tucker
 """
-
+#Imports
 import numpy as np
 from landlab import RasterModelGrid
 import matplotlib.pylab as plt
 
-
+"""Initialize"""
 # Constants
-num_rows = 10 # number of rows
+num_rows = 20 # number of rows
 num_cols = 100 # number of columns
 dx = 10 # grid spacing
 mx = 0.05 # slope of rock in x
@@ -23,6 +23,7 @@ n = 0.05 # manning coefficient
 R = 0.0003 # rainfall
 I = 0 # infiltration
 
+#Make the Grid
 mg = RasterModelGrid(num_rows, num_cols, dx)
 core_nodes = mg.core_nodes
 
@@ -33,42 +34,43 @@ H = mg.add_zeros('node','water_height')
 Q = mg.add_zeros('link','flux')
 dQdA = np.zeros(mg.number_of_links)
 
+# Set Elevations
 ground_elevation[:] = topomax - mx*mg.node_x
 ground_elevation +=  my * np.abs(mg.node_y - mg.dx * ((num_rows - 1) / 2.0))
 water_elevation[:] = ground_elevation+H
+
+#Boundary Conditions - only open at downslope side
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-#mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+
 
 #Calculate Surface Slopes
 all_gradients = mg.calculate_gradients_at_links(ground_elevation)
 gradient = np.zeros(mg.number_of_links)
 gradient[mg.active_links] = all_gradients[mg.active_links]
-absgradient = np.abs(gradient)
+absgradient = np.abs(gradient) #taking sq rt later so needs to be abs value
 
+#Make sure z and gradient look legit
 print 'z', ground_elevation
 print 'grad', gradient
 
-
+"""Run"""
+#Time Loop
 for i in range(50000):
     # Calculate H at edges/links
     Hedge = mg.map_value_at_max_node_to_link('water_surface_elevation','water_height')
-    #print 'hedge',Hedge
+    #Calculate Flux
     Q = -np.sign(gradient)*1/n*((Hedge**(5/3)))*(absgradient**(1/2))
-    
+    #Calculate Flux Divergence
     dQdA = mg.calculate_flux_divergence_at_nodes(Q[mg.active_links])
+    #Balance inputs and outputs
     dHdt = R-dQdA                 
+    #Update elevations
     H[core_nodes] = np.maximum(H[core_nodes]+dHdt[core_nodes]*dt,0)
     water_elevation[core_nodes] = ground_elevation[core_nodes] + H[core_nodes]
-#    print 'Q', Q
-#    print 'dQdA', dQdA
-#    print 'dHdt', dHdt
 
-#    print 'H', H
-#    print
-
-# FINALIZE plotting from LandLab Overland Flow Tutorial
+"""Finalize"""
+#plotting from LandLab Overland Flow Tutorial
 # get a 2D array version of the water height
-#print 'H', H
 zwR = mg.node_vector_to_raster(ground_elevation)
 # create raster image
 plt.close()
