@@ -1,4 +1,6 @@
 # LandLabModels
 Models built using LandLab
 
-<p> The Overland Flow model is currently making the water height at every other node equal to zero. I'm not sure why. The other nodes seem to be working fine. I got some help from Greg Tucker on the model, particularly setting boundary conditions and assigning the correct sign to my flux. Any comments that could help me fix the every other height being zero issue are appreciated.</p>
+<p> These overland flow codes appear to be functioning, with much help from Greg Tucker and the LandLab tutorials. I had a code up earlier that didn't work because of an issue in my Hedge array. I deleted that code. Any comments for improvements on the functioning codes are appreciated since I am very new to python/LandLab and know I still have a lot to learn!</p>
+<p> </p>
+<p> Emily</p>
